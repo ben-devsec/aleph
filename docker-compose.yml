@@ -33,9 +33,9 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.9-management-alpine
-    ports:
-      - '127.0.0.1:5672:5672'
-      - '127.0.0.1:15672:15672'
+    # ports:
+    #   - '127.0.0.1:5672:5672'
+    #   - '127.0.0.1:15672:15672'
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq/
     networks:
@@ -147,10 +147,10 @@ services:
       - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.aleph-dev.rule=Host(`aleph-devel.internal.devsec.com`)"
-      - "traefik.http.routers.aleph-dev.entrypoints=websecure"
-      - "traefik.http.routers.aleph-dev.tls.certresolver=myresolver"
-      - "traefik.http.services.aleph-dev.loadbalancer.server.port=8080"
+      - "traefik.http.routers.aleph-devel.rule=Host(`aleph-devel.internal.devsec.com`)"
+      - "traefik.http.routers.aleph-devel.entrypoints=websecure"
+      - "traefik.http.routers.aleph-devel.tls.certresolver=myresolver"
+      - "traefik.http.services.aleph-devel.loadbalancer.server.port=8080"
       - traefik.docker.network=traefik
 
 volumes:
