@@ -24,8 +24,8 @@ services:
       - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
       - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
       - http.cors.allow-credentials=true
-    ports:
-      - '127.0.0.1:9200:9200'
+    # ports:
+    #   - '127.0.0.1:9200:9200'
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
     networks:
