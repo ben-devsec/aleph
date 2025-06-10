@@ -1,0 +1,3 @@
+User created. ID: 7, API Key: None
+Created: admin
+Login: test12345 / 97428568a9cae7dc7179a8806762fa64

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+docker compose run --rm shell aleph upgrade
+docker compose up -d api ui
