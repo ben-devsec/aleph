@@ -15,6 +15,7 @@ class TextViewer extends PureComponent {
   }
 
   render() {
+    
     const { noStyle } = this.props;
 
     if (noStyle) {
@@ -37,6 +38,7 @@ class TextViewer extends PureComponent {
 
     return (
       <Pre className="TextViewer" dir={dir}>
+        
         {this.highlightedText()}
       </Pre>
     );
