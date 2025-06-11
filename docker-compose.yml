@@ -9,48 +9,31 @@ services:
       POSTGRES_USER: aleph
       POSTGRES_PASSWORD: aleph
       POSTGRES_DATABASE: aleph
-      POSTGRES_MAX_CONNECTIONS: 500
-    command: ["postgres", "-c", "max_connections=5000"]
-    networks:
-      - traefik
 
   elasticsearch:
     image: ghcr.io/alephdata/aleph-elasticsearch:3bb5dbed97cfdb9955324d11e5c623a5c5bbc410
     hostname: elasticsearch
     environment:
       - discovery.type=single-node
-      - http.cors.enabled=true
-      - http.cors.allow-origin=moz-extension://fc700525-5c15-4708-ab94-355693edbdc2
-      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
-      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
-      - http.cors.allow-credentials=true
-    # ports:
-    #   - '127.0.0.1:9200:9200'
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
-    networks:
-      - traefik
-
-  rabbitmq:
-    image: rabbitmq:3.9-management-alpine
-    # ports:
-    #   - '127.0.0.1:5672:5672'
-    #   - '127.0.0.1:15672:15672'
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq/
-    networks:
-      - traefik
 
   redis:
     image: redis:alpine
     command: [ "redis-server", "--save", "3600", "10" ]
     volumes:
       - redis-data:/data
-    networks:
-      - traefik
 
+  rabbitmq:
+    image: rabbitmq:3.9-management-alpine
+    ports:
+      - '127.0.0.1:5672:5672'
+      - '127.0.0.1:15672:15672'
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/
+      
   ingest-file:
-    image: ghcr.io/alephdata/ingest-file:4.1.0
+    image: ghcr.io/alephdata/ingest-file:4.0.1
     tmpfs:
       - /tmp:mode=777
     volumes:
@@ -61,16 +44,9 @@ services:
     restart: on-failure
     env_file:
       - aleph.env
-    environment:
-      - TAGS_DATABASE_URI=sqlite:///tags.db
-    deploy:
-      mode: replicated
-      replicas: 1
-    networks:
-      - traefik
 
   worker:
-    image: ghcr.io/alephdata/aleph:${ALEPH_TAG:-4.1.1}
+    image: ghcr.io/alephdata/aleph:${ALEPH_TAG:-4.1.2}
     command: aleph worker
     restart: on-failure
     depends_on:
@@ -84,26 +60,9 @@ services:
       - archive-data:/data
     env_file:
       - aleph.env
-    deploy:
-      mode: replicated
-      replicas: 1
-    networks:
-      - traefik
-
-  exporter:
-    image: ghcr.io/alephdata/aleph:${ALEPH_TAG:-4.1.1}
-    command: "gunicorn --bind 0.0.0.0:9100 --log-file - aleph.metrics.exporter:app"
-    depends_on:
-      - postgres
-      - elasticsearch
-      - redis
-    tmpfs:
-      - /tmp
-    env_file:
-      - aleph.env
 
   shell:
-    image: ghcr.io/alephdata/aleph:${ALEPH_TAG:-4.1.1}
+    image: ghcr.io/alephdata/aleph:${ALEPH_TAG:-4.1.2}
     command: /bin/bash
     depends_on:
       - postgres
@@ -119,11 +78,11 @@ services:
       - "~:/host"
     env_file:
       - aleph.env
-    networks:
-      - traefik
 
   api:
-    image: ghcr.io/alephdata/aleph:${ALEPH_TAG:-4.1.1}
+    image: ghcr.io/alephdata/aleph:${ALEPH_TAG:-4.1.2}
+    expose:
+      - 8000
     depends_on:
       - postgres
       - elasticsearch
@@ -136,32 +95,17 @@ services:
       - archive-data:/data
     env_file:
       - aleph.env
-    networks:
-      - traefik
 
   ui:
-    image: ghcr.io/alephdata/aleph-ui-production:${ALEPH_TAG:-4.1.1}
+    image: ghcr.io/alephdata/aleph-ui-production:${ALEPH_TAG:-4.1.2}
     depends_on:
       - api
-    networks:
-      - traefik
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.aleph-devel.rule=Host(`aleph-devel.internal.devsec.com`)"
-      - "traefik.http.routers.aleph-devel.entrypoints=websecure"
-      - "traefik.http.routers.aleph-devel.tls.certresolver=myresolver"
-      - "traefik.http.services.aleph-devel.loadbalancer.server.port=8080"
-      - traefik.docker.network=traefik
+    ports:
+      - "8080:8080"
 
 volumes:
   archive-data: {}
   postgres-data: {}
   redis-data: {}
-  rabbitmq-data: {}
   elasticsearch-data: {}
-
-
-networks:
-  traefik:
-    external: true
-    name: "traefik"
+  rabbitmq-data: {}
